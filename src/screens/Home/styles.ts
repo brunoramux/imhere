@@ -47,4 +47,10 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
   },
+  listEmptyText: {
+    color: '#FFF',
+  },
+  textError: {
+    color: 'red',
+  },
 })

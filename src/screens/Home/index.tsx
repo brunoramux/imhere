@@ -1,4 +1,4 @@
-import { Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { FlatList, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { styles } from './styles'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
@@ -8,8 +8,7 @@ import { ParticipantsContext } from '../../contexts/ParticipantsContext'
 import { Participant } from '../../components/Participant'
 
 const newParticipantFormSchema = z.object({
-  id: z.number(),
-  name: z.string(),
+  name: z.string().min(3, { message: 'Nome Invalido' }).toUpperCase(),
 })
 
 type newParticipantFormInputs = z.infer<typeof newParticipantFormSchema>
@@ -17,7 +16,11 @@ type newParticipantFormInputs = z.infer<typeof newParticipantFormSchema>
 export function Home() {
   const { createParticipant, participants } = useContext(ParticipantsContext)
 
-  const { handleSubmit, setValue } = useForm<newParticipantFormInputs>({
+  const {
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<newParticipantFormInputs>({
     resolver: zodResolver(newParticipantFormSchema),
   })
   return (
@@ -29,7 +32,6 @@ export function Home() {
         <TextInput
           onChangeText={(text) => {
             setValue('name', text)
-            setValue('id', new Date().getTime())
           }}
           style={styles.input}
           placeholder="Nome do participante"
@@ -43,9 +45,31 @@ export function Home() {
           <Text style={styles.buttonText}>+</Text>
         </TouchableOpacity>
       </View>
-      {participants.map((data) => {
-        return <Participant key={data.id} id={data.id} name={data.name} />
-      })}
+      {errors.name && (
+        <Text style={styles.textError}>{errors.name.message}</Text>
+      )}
+
+      <FlatList
+        data={participants}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <Participant key={item.id} id={item.id} name={item.name} />
+        )}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={() => {
+          return (
+            <Text style={styles.listEmptyText}>
+              Ninguem chegou no evento ainda
+            </Text>
+          )
+        }}
+      />
+
+      {/* <ScrollView>
+        {participants.map((data) => {
+          return <Participant key={data.id} id={data.id} name={data.name} />
+        })}
+      </ScrollView> */}
     </View>
   )
 }
